@@ -14,12 +14,6 @@ const (
 	OpenWeatherKey = ""
 )
 
-func testCall(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(`{"message": "Get called"}`))
-}
-
 func getCurrentWeatherByCityName(responseWriter http.ResponseWriter, request *http.Request) {
 	pathParams := mux.Vars(request)
 	responseWriter.Header().Set("Content-Type", "application/json")

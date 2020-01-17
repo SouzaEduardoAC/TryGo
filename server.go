@@ -15,7 +15,6 @@ func main() {
 	api.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "api v1")
 	})
-	api.HandleFunc("/test", testCall).Methods(http.MethodGet)
 	api.HandleFunc("/{cityName}/current-weather", getCurrentWeatherByCityName).Methods(http.MethodGet)
 	log.Fatalln(http.ListenAndServe(":8080", r))
 }
