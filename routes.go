@@ -25,12 +25,12 @@ func getCurrentWeatherByCityName(responseWriter http.ResponseWriter, request *ht
 		Timeout: time.Second * 2,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		log.Fatal(err)
+	openWeatherRequest, newRequestError := http.NewRequest(http.MethodGet, url, nil)
+	if newRequestError != nil {
+		log.Fatal(newRequestError)
 	}
 
-	openWeatherResponse, getError := spaceClient.Do(req)
+	openWeatherResponse, getError := spaceClient.Do(openWeatherRequest)
 	if getError != nil {
 		log.Fatal(getError)
 	}
