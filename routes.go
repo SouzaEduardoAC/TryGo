@@ -1,13 +1,17 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
+)
+
+const (
+	OpenWeatherKey = ""
 )
 
 func testCall(w http.ResponseWriter, r *http.Request) {
@@ -21,8 +25,7 @@ func getCurrentWeatherByCityName(responseWriter http.ResponseWriter, request *ht
 	responseWriter.Header().Set("Content-Type", "application/json")
 
 	cityName := pathParams["cityName"]
-	OPEN_WEATHER_KEY := "OpenWeatherKey"
-	url := fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?q=%s&APPID=%s", cityName, OPEN_WEATHER_KEY)
+	url := fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?q=%s&APPID=%s", cityName, OpenWeatherKey)
 
 	spaceClient := http.Client{
 		Timeout: time.Second * 2,
@@ -38,11 +41,29 @@ func getCurrentWeatherByCityName(responseWriter http.ResponseWriter, request *ht
 		log.Fatal(getError)
 	}
 
-	openWeatherResponseBody, readError := ioutil.ReadAll(openWeatherResponse.Body)
-	if readError != nil {
-		log.Fatal(readError)
+	var mappedResult map[string]interface{}
+
+	json.NewDecoder(openWeatherResponse.Body).Decode(&mappedResult)
+
+	data := OpenWeatherData{
+		CityId:             mappedResult["id"].(float64),
+		CityName:           mappedResult["name"].(string),
+		CurrentTemperature: mappedResult["main"].(map[string]interface{})["temp"].(float64),
+		FeelsLike:          mappedResult["main"].(map[string]interface{})["feels_like"].(float64),
+		Country:            mappedResult["sys"].(map[string]interface{})["country"].(string),
 	}
 
-	responseWriter.Write([]byte(openWeatherResponseBody))
-	//`api.openweathermap.org/data/2.5/weather?id="%s"`, cityId
+	apiResponse, errorResponse := json.Marshal(data)
+	if errorResponse != nil {
+		log.Fatal(errorResponse)
+	}
+	responseWriter.Write(apiResponse)
+}
+
+type OpenWeatherData struct {
+	CityId             float64 `json: "id"`
+	CityName           string  `json: "name"`
+	CurrentTemperature float64 `json: "currentTemperature"`
+	FeelsLike          float64 `json: "feelsLike"`
+	Country            string  `json: "country"`
 }
