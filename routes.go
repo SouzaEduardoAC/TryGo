@@ -55,9 +55,9 @@ func getCurrentWeatherByCityName(responseWriter http.ResponseWriter, request *ht
 }
 
 type OpenWeatherData struct {
-	CityId             float64 `json: "id"`
-	CityName           string  `json: "name"`
-	CurrentTemperature float64 `json: "currentTemperature"`
-	FeelsLike          float64 `json: "feelsLike"`
-	Country            string  `json: "country"`
+	CityId             float64
+	CityName           string
+	CurrentTemperature float64
+	FeelsLike          float64
+	Country            string
 }
