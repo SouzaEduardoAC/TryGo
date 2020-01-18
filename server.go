@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -10,11 +9,6 @@ import (
 
 func main() {
 	r := mux.NewRouter()
-	log.Println("Open Weather API")
-	api := r.PathPrefix("/api/v1").Subrouter()
-	api.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "api v1")
-	})
-	api.HandleFunc("/{cityName}/current-weather", getCurrentWeatherByCityName).Methods(http.MethodGet)
+	RegisterOpenWeatherRouters(r)
 	log.Fatalln(http.ListenAndServe(":8080", r))
 }
