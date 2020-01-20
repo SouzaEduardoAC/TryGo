@@ -1,0 +1,7 @@
+server:
+  host: "localhost"
+  port: 8080
+
+open-weather:
+  Key: "ApiKey"
+  Url : "http://api.openweathermap.org"

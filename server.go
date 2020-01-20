@@ -9,6 +9,7 @@ import (
 
 func main() {
 	r := mux.NewRouter()
+	c := GetDevelopmentConfiguration()
 	RegisterOpenWeatherRouters(r)
-	log.Fatalln(http.ListenAndServe(":8080", r))
+	log.Fatalln(http.ListenAndServe(":"+c.Server.Port, r))
 }
