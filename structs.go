@@ -25,7 +25,7 @@ type Config struct {
 		Host string `yaml:"host"`
 	} `yaml:"server"`
 	OpenWeather struct {
-		Key string `yaml:"Key"`
-		Url string `yaml:"Url"`
+		Key string `yaml:"key"`
+		Url string `yaml:"url"`
 	} `yaml:"open-weather"`
 }
