@@ -33,6 +33,23 @@ func GetCurrentWeatherForAllCitiesOfCountry(responseWriter http.ResponseWriter, 
 	responseWriter.Write(jr)
 }
 
+func GetCurrentWeatherForAllCitiesOfCountryParallel(responseWriter http.ResponseWriter, request *http.Request) {
+
+	responseWriter.Header().Set("Content-Type", "application/json")
+	pathParams := mux.Vars(request)
+	cn := pathParams["country"]
+	r := make(chan CurrentWeatherData)
+	go GetCurrentWeatherForCitysInCountry(cn, r)
+
+	var chanData []CurrentWeatherData
+	for c := range r {
+		chanData = append(chanData, c)
+	}
+
+	res := MakeMultipleCurrentWeatherJsonResponse(&chanData)
+	responseWriter.Write(res)
+}
+
 func MakeMultipleCurrentWeatherJsonResponse(d *[]CurrentWeatherData) []byte {
 	r, err := json.Marshal(d)
 	if err != nil {

@@ -12,4 +12,5 @@ func RegisterOpenWeatherRouters(r *mux.Router) {
 	api := r.PathPrefix("/api/open-weather").Subrouter()
 	api.HandleFunc("/{cityName}/current-weather", GetCurrentWeatherByCityName).Methods(http.MethodGet)
 	api.HandleFunc("/country/{country}/all-cities-weather", GetCurrentWeatherForAllCitiesOfCountry).Methods(http.MethodGet)
+	api.HandleFunc("/country/{country}/all-cities-weather-parallel", GetCurrentWeatherForAllCitiesOfCountryParallel).Methods(http.MethodGet)
 }

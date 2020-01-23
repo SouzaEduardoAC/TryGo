@@ -48,6 +48,40 @@ func GetCurrentWeatherForAllCitiesOfCountryInJson(cn string) []map[string]interf
 	return r
 }
 
+func GetCurrentWeatherForCitysInCountry(cn string, rchan chan CurrentWeatherData) {
+	defer close(rchan)
+
+	c := GetDevelopmentConfiguration()
+	cities := getCitiesFromCountry(cn)
+	citiesToBeUsed := cities[:10]
+
+	var results = []chan CurrentWeatherData{}
+
+	for i, city := range citiesToBeUsed {
+		results = append(results, make(chan CurrentWeatherData))
+		go GetCurrentWeatherDataForCityRoutine(&c, city, results[i])
+	}
+
+	for i := range results {
+		for r1 := range results[i] {
+			rchan <- r1
+		}
+	}
+}
+
+func GetCurrentWeatherDataForCityRoutine(c *Config, city City, rchan chan CurrentWeatherData) {
+	defer close(rchan)
+	url := fmt.Sprintf("%s/data/2.5/weather?q=%s&APPID=%s", c.OpenWeather.Url, city.Name, c.OpenWeather.Key)
+	res, err := hc.Get(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var rb map[string]interface{}
+	json.NewDecoder(res.Body).Decode(&rb)
+	cwd := CurrentWeatherDataOf(rb)
+	rchan <- cwd
+}
+
 func getCitiesFromCountry(cn string) (c []City) {
 	cities := loadCitiesFromJson()
 	for _, e := range cities {
