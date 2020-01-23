@@ -29,3 +29,10 @@ type Config struct {
 		Url string `yaml:"url"`
 	} `yaml:"open-weather"`
 }
+
+type City struct {
+	Id         int                    `json:"id"`
+	Name       string                 `json:"name"`
+	Country    string                 `json:"country"`
+	Coordinate map[string]interface{} `json:"coord"`
+}

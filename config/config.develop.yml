@@ -3,5 +3,5 @@ server:
   port: 8080
 
 open-weather:
-  key: "Key"
+  key: "42028795116e811132e8596e7271a56b"
   url : "http://api.openweathermap.org"
