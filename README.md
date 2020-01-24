@@ -1,2 +1,2 @@
-# TryGo : WIP
+# TryGo
 Repository for learning purposes
