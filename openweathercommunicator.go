@@ -53,7 +53,7 @@ func GetCurrentWeatherForCitysInCountry(cn string, rchan chan CurrentWeatherData
 
 	c := GetDevelopmentConfiguration()
 	cities := getCitiesFromCountry(cn)
-	citiesToBeUsed := cities[:10]
+	citiesToBeUsed := cities[:50]
 
 	var results = []chan CurrentWeatherData{}
 
