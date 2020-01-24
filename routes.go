@@ -11,59 +11,58 @@ import (
 func GetCurrentWeatherByCityName(responseWriter http.ResponseWriter, request *http.Request) {
 	responseWriter.Header().Set("Content-Type", "application/json")
 	pathParams := mux.Vars(request)
-	cn := pathParams["cityName"]
-	m := GetCurrentWeatherForCity(cn)
-	d := CurrentWeatherDataOf(m)
-	r := MakeSingleCurrentWeatherJsonResponse(&d)
-	responseWriter.Write(r)
+	cityName := pathParams["cityName"]
+	weatherMap := GetCurrentWeatherForCity(cityName)
+	currentWeatherData := CurrentWeatherDataOf(weatherMap)
+	response := MakeSingleCurrentWeatherJsonResponse(&currentWeatherData)
+	responseWriter.Write(response)
 }
 
 func GetCurrentWeatherForAllCitiesOfCountry(responseWriter http.ResponseWriter, request *http.Request) {
 	responseWriter.Header().Set("Content-Type", "application/json")
 	pathParams := mux.Vars(request)
-	cn := pathParams["country"]
-	cities := GetCurrentWeatherForAllCitiesOfCountryInJson(cn)
-	var ds []CurrentWeatherData
+	country := pathParams["country"]
+	cities := GetCurrentWeatherForAllCitiesOfCountryInJson(country)
+	var currentWeatherDataArray []CurrentWeatherData
 	for _, cityWeather := range cities {
-		cw := CurrentWeatherDataOf(cityWeather)
-		log.Println(cw)
-		ds = append(ds, cw)
+		currentWeatherData := CurrentWeatherDataOf(cityWeather)
+		currentWeatherDataArray = append(currentWeatherDataArray, currentWeatherData)
 	}
-	jr := MakeMultipleCurrentWeatherJsonResponse(&ds)
-	responseWriter.Write(jr)
+	response := MakeMultipleCurrentWeatherJsonResponse(&currentWeatherDataArray)
+	responseWriter.Write(response)
 }
 
 func GetCurrentWeatherForAllCitiesOfCountryParallel(responseWriter http.ResponseWriter, request *http.Request) {
 
 	responseWriter.Header().Set("Content-Type", "application/json")
 	pathParams := mux.Vars(request)
-	cn := pathParams["country"]
-	r := make(chan CurrentWeatherData)
-	go GetCurrentWeatherForCitysInCountry(cn, r)
+	country := pathParams["country"]
+	mainChannel := make(chan CurrentWeatherData)
+	go GetCurrentWeatherForCitysInCountry(country, mainChannel)
 
-	var chanData []CurrentWeatherData
-	for c := range r {
-		chanData = append(chanData, c)
+	var channelData []CurrentWeatherData
+	for element := range mainChannel {
+		channelData = append(channelData, element)
 	}
 
-	res := MakeMultipleCurrentWeatherJsonResponse(&chanData)
-	responseWriter.Write(res)
+	response := MakeMultipleCurrentWeatherJsonResponse(&channelData)
+	responseWriter.Write(response)
 }
 
-func MakeMultipleCurrentWeatherJsonResponse(d *[]CurrentWeatherData) []byte {
-	r, err := json.Marshal(d)
-	if err != nil {
-		log.Fatal(err)
+func MakeMultipleCurrentWeatherJsonResponse(data *[]CurrentWeatherData) []byte {
+	response, error := json.Marshal(data)
+	if error != nil {
+		log.Fatal(error)
 		return []byte("")
 	}
-	return r
+	return response
 }
 
-func MakeSingleCurrentWeatherJsonResponse(d *CurrentWeatherData) []byte {
-	r, err := json.Marshal(d)
-	if err != nil {
-		log.Fatal(err)
+func MakeSingleCurrentWeatherJsonResponse(data *CurrentWeatherData) []byte {
+	response, error := json.Marshal(data)
+	if error != nil {
+		log.Fatal(error)
 		return []byte("")
 	}
-	return r
+	return response
 }

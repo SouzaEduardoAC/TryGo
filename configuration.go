@@ -17,19 +17,19 @@ func GetProductionConfiguration() Config {
 }
 
 func getConfiguration(env string) Config {
-	f, err := os.Open(fmt.Sprintf("config/config.%s.yml", env))
+	file, err := os.Open(fmt.Sprintf("config/config.%s.yml", env))
 	if err != nil {
 		processError(err)
 	}
-	defer f.Close()
+	defer file.Close()
 
-	var cfg Config
-	decoder := yaml.NewDecoder(f)
-	err = decoder.Decode(&cfg)
+	var config Config
+	decoder := yaml.NewDecoder(file)
+	err = decoder.Decode(&config)
 	if err != nil {
 		processError(err)
 	}
-	return cfg
+	return config
 }
 
 func processError(e interface{}) {

@@ -10,97 +10,95 @@ import (
 )
 
 var (
-	hc = http.Client{
+	httpClient = http.Client{
 		Timeout: time.Second * 3,
 	}
 )
 
-func GetCurrentWeatherForCity(cn string) map[string]interface{} {
-	c := GetDevelopmentConfiguration()
+func GetCurrentWeatherForCity(cityName string) map[string]interface{} {
+	configuration := GetDevelopmentConfiguration()
 
-	url := fmt.Sprintf("%s/data/2.5/weather?q=%s&APPID=%s", c.OpenWeather.Url, cn, c.OpenWeather.Key)
-	log.Println(url)
-	res, err := hc.Get(url)
-	if err != nil {
-		log.Fatal(err)
+	url := fmt.Sprintf("%s/data/2.5/weather?q=%s&APPID=%s", configuration.OpenWeather.Url, cityName, configuration.OpenWeather.Key)
+	openWeatherResponse, clientError := httpClient.Get(url)
+	if clientError != nil {
+		log.Fatal(clientError)
 	}
 
-	var mr map[string]interface{}
-	json.NewDecoder(res.Body).Decode(&mr)
+	var openWeatherResponseDecoded map[string]interface{}
+	json.NewDecoder(openWeatherResponse.Body).Decode(&openWeatherResponseDecoded)
 
-	return mr
+	return openWeatherResponseDecoded
 }
 
-func GetCurrentWeatherForAllCitiesOfCountryInJson(cn string) []map[string]interface{} {
-	c := GetDevelopmentConfiguration()
-	cities := getCitiesFromCountry(cn)
+func GetCurrentWeatherForAllCitiesOfCountryInJson(countryName string) []map[string]interface{} {
+	configuration := GetDevelopmentConfiguration()
+	cities := getCitiesFromCountry(countryName)
 	citiesToBeUsed := cities[:10]
-	r := make([]map[string]interface{}, 0)
+	response := make([]map[string]interface{}, 0)
 	for _, city := range citiesToBeUsed {
-		url := fmt.Sprintf("%s/data/2.5/weather?q=%s&APPID=%s", c.OpenWeather.Url, city.Name, c.OpenWeather.Key)
-		log.Println(url)
-		res, _ := hc.Get(url)
-		var rb map[string]interface{}
-		json.NewDecoder(res.Body).Decode(&rb)
-		r = append(r, rb)
+		url := fmt.Sprintf("%s/data/2.5/weather?q=%s&APPID=%s", configuration.OpenWeather.Url, city.Name, configuration.OpenWeather.Key)
+		openWeatherReponse, _ := httpClient.Get(url)
+		var responseDecoded map[string]interface{}
+		json.NewDecoder(openWeatherReponse.Body).Decode(&responseDecoded)
+		response = append(response, responseDecoded)
 	}
 
-	return r
+	return response
 }
 
-func GetCurrentWeatherForCitysInCountry(cn string, rchan chan CurrentWeatherData) {
-	defer close(rchan)
+func GetCurrentWeatherForCitysInCountry(country string, mainChannel chan CurrentWeatherData) {
+	defer close(mainChannel)
 
-	c := GetDevelopmentConfiguration()
-	cities := getCitiesFromCountry(cn)
+	configuration := GetDevelopmentConfiguration()
+	cities := getCitiesFromCountry(country)
 	citiesToBeUsed := cities[:50]
 
-	var results = []chan CurrentWeatherData{}
+	var requestChannels = []chan CurrentWeatherData{}
 
 	for i, city := range citiesToBeUsed {
-		results = append(results, make(chan CurrentWeatherData))
-		go GetCurrentWeatherDataForCityRoutine(&c, city, results[i])
+		requestChannels = append(requestChannels, make(chan CurrentWeatherData))
+		go GetCurrentWeatherDataForCityRoutine(&configuration, city, requestChannels[i])
 	}
 
-	for i := range results {
-		for r1 := range results[i] {
-			rchan <- r1
+	for i := range requestChannels {
+		for channel := range requestChannels[i] {
+			mainChannel <- channel
 		}
 	}
 }
 
-func GetCurrentWeatherDataForCityRoutine(c *Config, city City, rchan chan CurrentWeatherData) {
-	defer close(rchan)
-	url := fmt.Sprintf("%s/data/2.5/weather?q=%s&APPID=%s", c.OpenWeather.Url, city.Name, c.OpenWeather.Key)
-	res, err := hc.Get(url)
-	if err != nil {
-		log.Fatal(err)
+func GetCurrentWeatherDataForCityRoutine(configuration *Config, city City, openWeatherRequestChannel chan CurrentWeatherData) {
+	defer close(openWeatherRequestChannel)
+	url := fmt.Sprintf("%s/data/2.5/weather?q=%s&APPID=%s", configuration.OpenWeather.Url, city.Name, configuration.OpenWeather.Key)
+	openWeatherResponse, clientError := httpClient.Get(url)
+	if clientError != nil {
+		log.Fatal(clientError)
 	}
-	var rb map[string]interface{}
-	json.NewDecoder(res.Body).Decode(&rb)
-	cwd := CurrentWeatherDataOf(rb)
-	rchan <- cwd
+	var openWeatherResponseDecoded map[string]interface{}
+	json.NewDecoder(openWeatherResponse.Body).Decode(&openWeatherResponseDecoded)
+	currentWeatherData := CurrentWeatherDataOf(openWeatherResponseDecoded)
+	openWeatherRequestChannel <- currentWeatherData
 }
 
-func getCitiesFromCountry(cn string) (c []City) {
+func getCitiesFromCountry(country string) (citiesResponse []City) {
 	cities := loadCitiesFromJson()
-	for _, e := range cities {
-		if e.Country == cn {
-			c = append(c, e)
+	for _, city := range cities {
+		if city.Country == country {
+			citiesResponse = append(citiesResponse, city)
 		}
 	}
 
 	return
 }
 
-func loadCitiesFromJson() (c []City) {
+func loadCitiesFromJson() (cities []City) {
 	file, err := ioutil.ReadFile("./city.list.json")
 	if err != nil {
 		log.Fatal("File not found")
 		return nil
 	}
 
-	err = json.Unmarshal([]byte(file), &c)
+	err = json.Unmarshal([]byte(file), &cities)
 	if err != nil {
 		log.Fatal("Fail to unmarshall")
 		return nil

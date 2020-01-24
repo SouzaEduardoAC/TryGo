@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	r := mux.NewRouter()
-	c := GetDevelopmentConfiguration()
-	RegisterOpenWeatherRouters(r)
-	log.Fatalln(http.ListenAndServe(":"+c.Server.Port, r))
+	router := mux.NewRouter()
+	configuration := GetDevelopmentConfiguration()
+	RegisterOpenWeatherRouters(router)
+	log.Fatalln(http.ListenAndServe(":"+configuration.Server.Port, router))
 }
